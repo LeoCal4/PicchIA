@@ -1,5 +1,5 @@
 import pygame
-from math import acos, sqrt, pi
+from math import atan2, sqrt, pi
 PROJ_SPEED = 3
 SHOOT_RATE = 30
 WHITE = (255, 255, 255)
@@ -22,6 +22,7 @@ class Player(pygame.sprite.Sprite):
 
         self.image = pygame.surface.Surface((self.WIDTH, self.HEIGTH))
         self.image = pygame.image.load('pg.png')
+        self.original_image = self.image
         self.rect = self.image.get_rect()
 
         self.hp = 100
@@ -39,12 +40,7 @@ class Player(pygame.sprite.Sprite):
         self.move_dir_x = keys[pygame.K_d] - keys[pygame.K_a]
         self.move_dir_y = keys[pygame.K_s] - keys[pygame.K_w]
         self.move()
-
-        mouse_pos = mouse_x, mouse_y = pygame.mouse.get_pos()
-        shooting_angle = (180/pi)*acos(
-            (mouse_x - self.rect.x) / (sqrt(mouse_x - self.rect.x)**2 + (self.rect.y - mouse_y)**2))
-        print(shooting_angle)
-
+        self.rotate()
         if keys[pygame.K_SPACE] and self.enable:
             print('shoot')
             self.shoot()
@@ -65,6 +61,13 @@ class Player(pygame.sprite.Sprite):
     def move(self):
         self.rect.x += self.MOVE_SPEED * self.move_dir_x
         self.rect.y += self.MOVE_SPEED * self.move_dir_y
+
+    def rotate(self):
+        mouse_x, mouse_y = pygame.mouse.get_pos()
+        rel_x, rel_y = mouse_x - self.rect.centerx, mouse_y - self.rect.centery
+        shooting_angle = (180 / pi) * -atan2(rel_y, rel_x)
+        self.image = pygame.transform.rotate(self.original_image, int(shooting_angle))
+        self.rect = self.image.get_rect(center=self.rect.center)
 
     def shoot(self):
         proj = Projectile()

@@ -1,6 +1,6 @@
 import pygame
 import sys
-from Player import Player
+from Player import Player, Projectile
 
 
 def main():

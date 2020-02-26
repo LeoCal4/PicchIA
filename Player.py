@@ -1,16 +1,8 @@
 import pygame
+import weapon
 from math import atan2, sqrt, pi
-PROJ_SPEED = 3
-SHOOT_RATE = 30
+
 WHITE = (255, 255, 255)
-
-
-class Projectile:
-    def __init__(self):
-        self.image = pygame.surface.Surface((10, 10))
-        pygame.draw.circle(self.image, (255, 255, 255), (5, 5), 5)
-        self.rect = self.image.get_rect()
-
 
 class Player(pygame.sprite.Sprite):
     WIDTH = 40
@@ -19,21 +11,18 @@ class Player(pygame.sprite.Sprite):
 
     def __init__(self):
         pygame.sprite.Sprite.__init__(self)
-
         self.image = pygame.surface.Surface((self.WIDTH, self.HEIGTH))
         self.image = pygame.image.load('pg.png')
         self.original_image = self.image
         self.rect = self.image.get_rect()
-
         self.hp = 100
-        self.weapons = list()
+        self.weapons = [weapon.Shotgun(self)]
+        self.current_weapon = self.weapons[0]
         self.move_dir_x = 0
         self.move_dir_y = 0
-
-        self.i = 0
-        self.enable = True
-
-        self.projectiles = []
+        self.delta_time_shooting = 0
+        self.enable_shooting = True
+        self.all_projectiles = pygame.sprite.Group()
 
     def update(self):
         keys = pygame.key.get_pressed()
@@ -41,22 +30,16 @@ class Player(pygame.sprite.Sprite):
         self.move_dir_y = keys[pygame.K_s] - keys[pygame.K_w]
         self.move()
         self.rotate()
-        if keys[pygame.K_SPACE] and self.enable:
-            print('shoot')
-            self.shoot()
-            self.enable = False
-        self.i += 1
-        if self.i % SHOOT_RATE == 0:
-            self.enable = True
-
-        screen = pygame.display.get_surface()
-        for proj in self.projectiles:
-            screen.blit(proj.image, (proj.rect.x, proj.rect.y))
-
-            proj.rect.x += PROJ_SPEED
-
-            if not screen.get_rect().colliderect(proj.rect):
-                self.projectiles.remove(proj)
+        if keys[pygame.K_SPACE] and self.enable_shooting:
+            self.current_weapon.shoot()
+            self.enable_shooting = False
+        if not self.enable_shooting:
+            self.delta_time_shooting += 1
+        if self.delta_time_shooting % self.current_weapon.shoot_delay == 0:
+            self.enable_shooting = True
+            self.delta_time_shooting += 0
+        self.all_projectiles.update()
+        self.all_projectiles.draw(pygame.display.get_surface())
 
     def move(self):
         self.rect.x += self.MOVE_SPEED * self.move_dir_x
@@ -68,9 +51,3 @@ class Player(pygame.sprite.Sprite):
         shooting_angle = (180 / pi) * -atan2(rel_y, rel_x)
         self.image = pygame.transform.rotate(self.original_image, int(shooting_angle))
         self.rect = self.image.get_rect(center=self.rect.center)
-
-    def shoot(self):
-        proj = Projectile()
-        proj.rect.right = self.rect.right
-        proj.rect.centery = self.rect.centery
-        self.projectiles.append(proj)

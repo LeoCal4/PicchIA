@@ -1,8 +1,8 @@
 import pygame
 import weapon
 from math import atan2, sqrt, pi
+from utils import *
 
-WHITE = (255, 255, 255)
 
 class Player(pygame.sprite.Sprite):
     WIDTH = 40
@@ -12,14 +12,20 @@ class Player(pygame.sprite.Sprite):
     def __init__(self):
         pygame.sprite.Sprite.__init__(self)
         self.image = pygame.surface.Surface((self.WIDTH, self.HEIGTH))
-        self.image = pygame.image.load('pg.png')
+        # self.image = pygame.image.load('pg.png')
+        self.image.fill(WHITE)
         self.original_image = self.image
         self.rect = self.image.get_rect()
+        self.rect.x = 100
+        self.rect.y = 100
+
         self.hp = 100
         self.weapons = [weapon.Shotgun(self)]
         self.current_weapon = self.weapons[0]
+
         self.move_dir_x = 0
         self.move_dir_y = 0
+
         self.delta_time_shooting = 0
         self.enable_shooting = True
         self.all_projectiles = pygame.sprite.Group()
@@ -29,7 +35,8 @@ class Player(pygame.sprite.Sprite):
         self.move_dir_x = keys[pygame.K_d] - keys[pygame.K_a]
         self.move_dir_y = keys[pygame.K_s] - keys[pygame.K_w]
         self.move()
-        self.rotate()
+        # self.rotate()
+
         if keys[pygame.K_SPACE] and self.enable_shooting:
             self.current_weapon.shoot()
             self.enable_shooting = False
@@ -37,7 +44,8 @@ class Player(pygame.sprite.Sprite):
             self.delta_time_shooting += 1
         if self.delta_time_shooting % self.current_weapon.shoot_delay == 0:
             self.enable_shooting = True
-            self.delta_time_shooting += 0
+            self.delta_time_shooting = 0
+
         self.all_projectiles.update()
         self.all_projectiles.draw(pygame.display.get_surface())
 
@@ -49,5 +57,6 @@ class Player(pygame.sprite.Sprite):
         mouse_x, mouse_y = pygame.mouse.get_pos()
         rel_x, rel_y = mouse_x - self.rect.centerx, mouse_y - self.rect.centery
         shooting_angle = (180 / pi) * -atan2(rel_y, rel_x)
-        self.image = pygame.transform.rotate(self.original_image, int(shooting_angle))
+        self.image = pygame.transform.rotate(
+            self.original_image, int(shooting_angle))
         self.rect = self.image.get_rect(center=self.rect.center)

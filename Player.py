@@ -20,7 +20,8 @@ class Player(pygame.sprite.Sprite):
         self.rect.y = 100
 
         self.hp = 100
-        self.weapons = [weapon.Shotgun(self)]
+        self.weapons = [weapon.Shotgun(self), weapon.Assault_Rifle(
+            self), weapon.Sniper_Rifle(self)]
         self.current_weapon = self.weapons[0]
 
         self.move_dir_x = 0
@@ -35,9 +36,12 @@ class Player(pygame.sprite.Sprite):
         self.move_dir_x = keys[pygame.K_d] - keys[pygame.K_a]
         self.move_dir_y = keys[pygame.K_s] - keys[pygame.K_w]
         self.move()
+
         # self.rotate()
 
+        self.handle_weapon_change(keys)
         if keys[pygame.K_SPACE] and self.enable_shooting:
+            mouse_x, mouse_y = pygame.mouse.get_pos()
             self.current_weapon.shoot()
             self.enable_shooting = False
         if not self.enable_shooting:
@@ -60,3 +64,9 @@ class Player(pygame.sprite.Sprite):
         self.image = pygame.transform.rotate(
             self.original_image, int(shooting_angle))
         self.rect = self.image.get_rect(center=self.rect.center)
+
+    def handle_weapon_change(self, keys):
+        weapons_dict = {pygame.K_1: 0, pygame.K_2: 1, pygame.K_3: 2}
+        for key in weapons_dict:
+            if keys[key]:
+                self.current_weapon = self.weapons[weapons_dict[key]]

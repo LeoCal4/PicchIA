@@ -1,24 +1,25 @@
 import pygame
 import weapon
-from math import atan2, sqrt, pi
+from math import atan2, sqrt, pi, degrees
 from utils import *
-
 
 class Player(pygame.sprite.Sprite):
     WIDTH = 40
     HEIGTH = 40
     MOVE_SPEED = 2
 
-    def __init__(self):
+    def __init__(self, walls):
         pygame.sprite.Sprite.__init__(self)
         self.image = pygame.surface.Surface((self.WIDTH, self.HEIGTH))
         # self.image = pygame.image.load('pg.png')
+        # self.image = pygame.image.load('sprite_piccolissima.png')
+        # self.image = pygame.image.load('sprite_media.png')
         self.image.fill(WHITE)
         self.original_image = self.image
         self.rect = self.image.get_rect()
         self.rect.x = 100
         self.rect.y = 100
-
+        self.walls = walls
         self.hp = 100
         self.weapons = [weapon.Shotgun(self), weapon.Assault_Rifle(
             self), weapon.Sniper_Rifle(self)]
@@ -36,9 +37,7 @@ class Player(pygame.sprite.Sprite):
         self.move_dir_x = keys[pygame.K_d] - keys[pygame.K_a]
         self.move_dir_y = keys[pygame.K_s] - keys[pygame.K_w]
         self.move()
-
-        # self.rotate()
-
+        #self.rotate()
         self.handle_weapon_change(keys)
         if keys[pygame.K_SPACE] and self.enable_shooting:
             mouse_x, mouse_y = pygame.mouse.get_pos()
@@ -55,12 +54,14 @@ class Player(pygame.sprite.Sprite):
 
     def move(self):
         self.rect.x += self.MOVE_SPEED * self.move_dir_x
+        self.handle_x_collisions()
         self.rect.y += self.MOVE_SPEED * self.move_dir_y
+        self.handle_y_collisions()
 
     def rotate(self):
         mouse_x, mouse_y = pygame.mouse.get_pos()
         rel_x, rel_y = mouse_x - self.rect.centerx, mouse_y - self.rect.centery
-        shooting_angle = (180 / pi) * -atan2(rel_y, rel_x)
+        shooting_angle = degrees(-atan2(rel_y, rel_x))
         self.image = pygame.transform.rotate(
             self.original_image, int(shooting_angle))
         self.rect = self.image.get_rect(center=self.rect.center)
@@ -70,3 +71,19 @@ class Player(pygame.sprite.Sprite):
         for key in weapons_dict:
             if keys[key]:
                 self.current_weapon = self.weapons[weapons_dict[key]]
+
+    def handle_x_collisions(self):
+        for wall in self.walls:
+            if self.rect.colliderect(wall.rect):
+                if self.rect.right > wall.rect.left and self.move_dir_x == 1:
+                    self.rect.right = wall.rect.left
+                elif self.rect.left < wall.rect.right and self.move_dir_x == -1:
+                    self.rect.left = wall.rect.right
+
+    def handle_y_collisions(self):
+            for wall in self.walls:
+                if self.rect.colliderect(wall.rect):
+                    if self.rect.bottom > wall.rect.top and self.move_dir_y == 1:
+                        self.rect.bottom = wall.rect.top
+                    elif self.rect.top < wall.rect.bottom and self.move_dir_y == -1:
+                        self.rect.top = wall.rect.bottom

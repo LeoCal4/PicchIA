@@ -66,6 +66,15 @@ class Player(pygame.sprite.Sprite):
             self.original_image, int(shooting_angle))
         self.rect = self.image.get_rect(center=self.rect.center)
 
+    def dot(self, x, y):
+        return sum(x_i*y_i for x_i, y_i in zip(x, y))
+
+    def norm(self, vector):
+        square_sum = 0
+        for el in vector:
+            square_sum += el**2
+        return sqrt(square_sum)
+
     def handle_weapon_change(self, keys):
         weapons_dict = {pygame.K_1: 0, pygame.K_2: 1, pygame.K_3: 2}
         for key in weapons_dict:

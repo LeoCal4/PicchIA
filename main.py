@@ -6,6 +6,7 @@ from utils import *
 
 def main():
     pygame.init()
+    pygame.mixer.quit()
     size = WINDOW_WIDTH, WINDOW_HEIGHT
     screen = pygame.display.set_mode(size)
 
@@ -27,7 +28,6 @@ def main():
         all_players.update()
         all_players.draw(screen)
         pygame.display.flip()
-
 
 if __name__ == "__main__":
     main()
